@@ -28,9 +28,9 @@ type ScanRequest struct {
 }
 
 type ScanReport struct {
-	Version          string               `json:"version"`
-	TrivyScanReport  trivy.ScanReport     `json:"vulnerabilities"`
-	DockleScanReport scanner.DockleReport `json:"audit"`
+	Version          string                `json:"version"`
+	TrivyScanReport  []trivy.Vulnerability `json:"vulnerabilities"`
+	DockleScanReport scanner.DockleReport  `json:"audit"`
 }
 
 // Hash index is not addressable in Go so we use flat key-value pairing
@@ -77,12 +77,12 @@ func dockerPullImage(imageRef, user, password string) error {
 	}
 
 	out, err := cli.ImagePull(ctx, imageRef, imagePullOptions)
-	defer out.Close()
 
 	if err != nil {
 		log.Errorf("Failed to pull docker image: %#v", err)
 		return err
 	}
+	defer out.Close()
 
 	log.Debugf("Successfully queued pull request for %s to docker daemon", imageRef)
 	log.Debugf("Waiting for image pull to finish")
@@ -161,13 +161,11 @@ func (ctx *ScanningService) ScanImage(req ScanRequest) (ScanReport, error) {
 
 	log.Debugf("Starting Trivy scan")
 	trivyScanReport, err := scanner.RunTrivyScan(reTaggedImage)
-
 	if err != nil {
 		log.Errorf("Failed to execute trivy scan: %#v", err)
 	}
 
-	log.Debugf("Completed trivy scan, found %d vulnerabilites on: %s",
-		len(trivyScanReport.Vulnerabilities), trivyScanReport.Target)
+	log.Debugf("Completed trivy scan, found %d vulnerabilities", len(trivyScanReport))
 
 	log.Debugf("Starting Dockle scan")
 	dockleScanReport, err := scanner.RunDockleScan(reTaggedImage)

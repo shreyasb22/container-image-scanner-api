@@ -4,7 +4,7 @@ RELEASE_REGISTRY=abh1sek/container-image-scannere-api
 all: build
 
 build:
-	CGO_ENABLED=0 GOOS=linux go build -o cis-api-server
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o cis-api-server
 
 release:
 	#docker build -t $(RELEASE_REGISTRY):$(VERSION) .

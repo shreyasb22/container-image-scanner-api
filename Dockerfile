@@ -1,7 +1,7 @@
-FROM golang:1.12.3
+FROM golang:latest
 WORKDIR /app
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o api-server
+RUN CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o api-server
 
 FROM goodwithtech/dockle:v0.2.4
 WORKDIR /app
@@ -15,7 +15,7 @@ COPY --from=1 /usr/local/bin/dockle /usr/local/bin/dockle
 COPY versions.json .
 
 # Build vulnerabilty cache
-RUN trivy --download-db-only
+RUN trivy image --download-db-only
 
 EXPOSE 8000
 
